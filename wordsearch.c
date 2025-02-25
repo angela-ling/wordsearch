@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Declarations of the two functions you will implement
-// Feel free to declare any helper functions or global variables
+// Function declarations
 void printPuzzle(char** arr);
 void searchPuzzle(char** arr, char* word);
+
+// Global variables
 int bSize;
 int found;
 
@@ -14,7 +15,7 @@ typedef struct coord{
     int y;
 } coord;
 
-// Main function, DO NOT MODIFY 	
+// Main function
 int main(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "Usage: %s <puzzle file name>\n", argv[0]);
@@ -61,11 +62,6 @@ int main(int argc, char **argv) {
 }
 
 void printPuzzle(char** arr) {
-	// This function will print out the complete puzzle grid (arr). 
-    // It must produce the output in the SAME format as the samples 
-    // in the instructions.
-    // Your implementation here...
-
     for (int i = 0; i < bSize; i++){
         for (int j = 0; j < bSize; j++){
             printf("%c ", *(*(arr + i) + j));
@@ -75,6 +71,9 @@ void printPuzzle(char** arr) {
 
 }
 
+// Helper Function for Recursive Search
+// This function uses backtracking to find the word recursively in every direction 
+// and updates the path array
 void searchHelper(char** arr, char* word, int wordSize, int row, int col, coord* path, int index) {
     if ((*(path + wordSize - 1)).x != -1){ 
         found = 1;
@@ -83,7 +82,7 @@ void searchHelper(char** arr, char* word, int wordSize, int row, int col, coord*
         return;
     }
 
-    // Set bounding box
+    // Define the search boundaries
     int urb, lrb, ucb, lcb;
     lrb = (row == 0) ? row : row - 1;
     urb = (row == bSize - 1) ? row : row + 1;
@@ -154,16 +153,9 @@ void printPathResult(char* word, int wordSize, coord* path) {
 }
 
 void searchPuzzle(char** arr, char* word) {
-    // This function checks if arr contains the search word. If the 
-    // word appears in arr, it will print out a message and the path 
-    // as shown in the sample runs. If not found, it will print a 
-    // different message as shown in the sample runs.
-    // Your implementation here...
-
-
     int wordSize = 0;
 
-    // Change word to uppercase
+    // Convert lowercase letters to uppercase
     char* p;
     for(p = word; *p != '\0'; p++){
         if (*p >= 97 && *p <= 122){
@@ -207,3 +199,4 @@ void searchPuzzle(char** arr, char* word) {
     }
 
 }
+
