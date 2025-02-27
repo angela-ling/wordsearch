@@ -3,14 +3,14 @@
 #include <string.h>
 
 // Function declarations
-void printPuzzle(char** arr);
-void searchPuzzle(char** arr, char* word);
+void printPuzzle(char **arr);
+void searchPuzzle(char **arr, char *word);
 
 // Global variables
-int bSize;
+int gridSize;
 int found;
 
-typedef struct coord{
+typedef struct coord {
     int x;
     int y;
 } coord;
@@ -32,19 +32,19 @@ int main(int argc, char **argv) {
     }
 
     // Read the size of the puzzle block
-    fscanf(fptr, "%d\n", &bSize);
+    fscanf(fptr, "%d\n", &gridSize);
     
     // Allocate space for the puzzle block and the word to be searched
-    char **block = (char**)malloc(bSize * sizeof(char*));
+    char **block = (char**)malloc(gridSize * sizeof(char*));
     char *word = (char*)malloc(20 * sizeof(char));
 
     // Read puzzle block into 2D arrays
-    for(i = 0; i < bSize; i++) {
-        *(block + i) = (char*)malloc(bSize * sizeof(char));
-        for (j = 0; j < bSize - 1; ++j) {
-            fscanf(fptr, "%c ", *(block + i) + j);            
+    for(i = 0; i < gridSize; i++) {
+        block[i] = (char*)malloc(gridSize * sizeof(char));
+        for (j = 0; j < gridSize - 1; ++j) {
+            fscanf(fptr, "%c ", &block[i][j]);            
         }
-        fscanf(fptr, "%c \n", *(block + i) + j);
+        fscanf(fptr, "%c \n", &block[i][j]);
     }
     fclose(fptr);
 
@@ -55,57 +55,57 @@ int main(int argc, char **argv) {
     printf("\nPrinting puzzle before search:\n");
     printPuzzle(block);
     
-    // Call searchPuzzle to the word in the puzzle
+    // Call searchPuzzle to search the word in the puzzle
     searchPuzzle(block, word);
     
     return 0;
 }
 
-void printPuzzle(char** arr) {
-    for (int i = 0; i < bSize; i++){
-        for (int j = 0; j < bSize; j++){
-            printf("%c ", *(*(arr + i) + j));
+void printPuzzle(char **arr) {
+    int i, j;
+    for (i = 0; i < gridSize; i++){
+        for (j = 0; j < gridSize; j++){
+            printf("%c ", arr[i][j]);
         }
         printf("\n");
     }
-
 }
 
 // Helper Function for Recursive Search
 // This function uses backtracking to find the word recursively in every direction 
 // and updates the path array
-void searchHelper(char** arr, char* word, int wordSize, int row, int col, coord* path, int index) {
-    if ((*(path + wordSize - 1)).x != -1){ 
+void searchHelper(char **arr, char *word, int wordSize, int row, int col, coord *path, int wordIndex) {
+    // Base case: if the last element in the path has been set, mark as found
+    if (path[wordSize - 1].x != -1) { 
         found = 1;
-    }
-    if (found) {
         return;
     }
 
     // Define the search boundaries
+    // Define a frame around the puzzle grid element
     int urb, lrb, ucb, lcb;
     lrb = (row == 0) ? row : row - 1;
-    urb = (row == bSize - 1) ? row : row + 1;
+    urb = (row == gridSize - 1) ? row : row + 1;
     lcb = (col == 0) ? col : col - 1;
-    ucb = (col == bSize - 1) ? col : col + 1;
+    ucb = (col == gridSize - 1) ? col : col + 1;
     
     for (int i = lrb; i <= urb; i++){
         for (int j = lcb; j <= ucb; j++){
-            if (i != (*(path + index - 1)).x || j != (*(path + index - 1)).y){
-                if (*(*(arr + i) + j) == *(word + index)) {
+            if (i != path[wordIndex - 1].x || j != path[wordIndex - 1].y){
+                if (arr[i][j] == word[wordIndex]) {
                     coord point;
                     point.x = i;
                     point.y = j;
-                    *(path + index) = point;
-                    searchHelper(arr, word, wordSize, i, j, path, index + 1);
-                    if(found) {
+                    path[wordIndex] = point;
+                    searchHelper(arr, word, wordSize, i, j, path, wordIndex + 1);
+                    if (found) {
                         break;
                     }
                     // Reset path values to (-1, -1)
                     else {
-                        for(int i = 1; i < wordSize; i++){
-                            (*(path + i)).x = -1;
-                            (*(path + i)).y = -1;
+                        for (int k = 1; k < wordSize; k++){
+                            path[k].x = -1;
+                            path[k].y = -1;
                         }
                     }
                 }
@@ -119,72 +119,70 @@ void searchHelper(char** arr, char* word, int wordSize, int row, int col, coord*
     return;
 }
 
-void printPathResult(char* word, int wordSize, coord* path) {
+void printPathResult(char *word, int wordSize, coord *path) {
     // Create 2D array for result grid
-    int **result = (int**)malloc(bSize * sizeof(int*));
-    for(int i = 0; i < bSize; i++){
-        *(result + i) = (int*)malloc(bSize * sizeof(int));
-        for (int j = 0; j < bSize; j++){
-            *(*(result + i) + j) = 0;
+    int **pathResult = (int**)malloc(gridSize * sizeof(int*));
+    for (int i = 0; i < gridSize; i++){
+        pathResult[i] = (int*)malloc(gridSize * sizeof(int));
+        for (int j = 0; j < gridSize; j++){
+            pathResult[i][j] = 0;
         }
     }
 
-    // Replace result squares with index where it was found
-    int index = 1;
+    // Replace result squares with the wordIndex where it was found
+    int wordIndex = 1;
     for (int i = 0; i < wordSize; i++){
-        if (*(*(result + ((*(path + i)).x)) + ((*(path + i)).y)) != 0){
-            *(*(result + ((*(path + i)).x)) + ((*(path + i)).y)) *= 10;
-            *(*(result + ((*(path + i)).x)) + ((*(path + i)).y)) += index;
+        if (pathResult[path[i].x][path[i].y] != 0){
+            pathResult[path[i].x][path[i].y] *= 10;
+            pathResult[path[i].x][path[i].y] += wordIndex;
         }
         else {
-            *(*(result + ((*(path + i)).x)) + ((*(path + i)).y)) = index;
+            pathResult[path[i].x][path[i].y] = wordIndex;
         }
-        index++;
+        wordIndex++;
     }
     
-    // Print result
-    for(int i = 0; i < bSize; i++){
-        for (int j = 0; j < bSize; j++){
-            printf("%d\t", *(*(result + i) + j));
+    // Print result grid
+    for (int i = 0; i < gridSize; i++){
+        for (int j = 0; j < gridSize; j++){
+            printf("%d\t", pathResult[i][j]);
         }
         printf("\n");
     }
-
 }
 
-void searchPuzzle(char** arr, char* word) {
+void searchPuzzle(char **arr, char *word) {
     int wordSize = 0;
 
-    // Convert lowercase letters to uppercase
-    char* p;
-    for(p = word; *p != '\0'; p++){
-        if (*p >= 97 && *p <= 122){
-            *p -= 32;
+    // Convert lowercase letters to uppercase and compute word size
+    for (int i = 0; word[i] != '\0'; i++){
+        if (word[i] >= 'a' && word[i] <= 'z'){
+            word[i] -= 32;
         }
         wordSize++;
     }
     
-    int index = 0;
+    int wordIndex = 0;
 
     // Initialize path array of coords with (-1, -1)
     coord *path = malloc(wordSize * sizeof(*path));
-    for(int i = 0; i < wordSize; i++){
-        (*(path + i)).x = -1;
-        (*(path + i)).y = -1;
+    for (int i = 0; i < wordSize; i++){
+        path[i].x = -1;
+        path[i].y = -1;
     }
     
-    for (int i = 0; i < bSize; i++){
-        for (int j = 0; j < bSize; j++){
-            if (*(*(arr + i) + j) == *(word + index)){
-                (*(path + index)).x = i;
-                (*(path + index)).y = j;
-                searchHelper(arr, word, wordSize, i, j, path, index + 1);
-                if(found){
+    for (int i = 0; i < gridSize; i++){
+        for (int j = 0; j < gridSize; j++){
+            if (arr[i][j] == word[wordIndex]){
+                path[wordIndex].x = i;
+                path[wordIndex].y = j;
+                searchHelper(arr, word, wordSize, i, j, path, wordIndex + 1);
+                if (found){
                     break;
                 }
             }
         }
-        if(found){
+        if (found){
             break;
         }
     }
@@ -197,6 +195,4 @@ void searchPuzzle(char** arr, char* word) {
     else {
         printf("\nWord not found!\n");
     }
-
 }
-
