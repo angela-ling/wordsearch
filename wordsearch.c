@@ -5,10 +5,11 @@
 // Function declarations
 void printPuzzle(char **arr);
 void searchPuzzle(char **arr, char *word);
+void freeMemory(char **block, int size, char *word);
 
 // Global variables
 int gridSize;
-int found;
+int found = 0;
 
 typedef struct coord {
     int x;
@@ -57,6 +58,9 @@ int main(int argc, char **argv) {
     
     // Call searchPuzzle to search the word in the puzzle
     searchPuzzle(block, word);
+
+    // Free allocated memory
+    freeMemory(block, gridSize, word);
     
     return 0;
 }
@@ -69,6 +73,14 @@ void printPuzzle(char **arr) {
         }
         printf("\n");
     }
+}
+
+void freeMemory(char **block, int size, char *word) {
+    for (int i = 0; i < size; i++) {
+        free(block[i]);
+    }
+    free(block);
+    free(word);
 }
 
 // Helper Function for Recursive Search
@@ -149,6 +161,11 @@ void printPathResult(char *word, int wordSize, coord *path) {
         }
         printf("\n");
     }
+
+    for (int i = 0; i < gridSize; i++) {
+        free(pathResult[i]);
+    }
+    free(pathResult);
 }
 
 void searchPuzzle(char **arr, char *word) {
@@ -195,4 +212,6 @@ void searchPuzzle(char **arr, char *word) {
     else {
         printf("\nWord not found!\n");
     }
+
+    free(path);
 }
